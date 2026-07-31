@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#2f6fb3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="タスク">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+<title>タスクカレンダー</title>
+</head>
+<body>
+
+<header class="appbar">
+  <button class="nav" id="prevMonth" aria-label="前の月">‹</button>
+  <button class="title" id="monthTitle" aria-label="月を選択">2026年8月</button>
+  <button class="nav" id="nextMonth" aria-label="次の月">›</button>
+  <div class="spacer"></div>
+  <button class="chip" id="todayBtn">今日</button>
+  <button class="chip" id="syncBtn" aria-label="同期"><span id="syncIcon">⟳</span></button>
+  <button class="chip" id="menuBtn" aria-label="メニュー">⋯</button>
+</header>
+
+<div class="statusline" id="statusline"></div>
+
+<section class="calendar" id="calendar">
+  <div class="dow">
+    <span class="sun">日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span class="sat">土</span>
+  </div>
+  <div class="grid" id="grid"></div>
+</section>
+
+<section class="panel" id="panel">
+  <div class="panel-head">
+    <div class="tabs">
+      <button class="tab active" data-tab="day" id="tabDay">8月3日(月)</button>
+      <button class="tab" data-tab="undated" id="tabUndated">日付なし <em id="undatedCount">0</em></button>
+    </div>
+    <button class="add" id="addBtn" aria-label="予定を追加">＋</button>
+  </div>
+  <div class="panel-body" id="panelBody"></div>
+</section>
+
+<!-- 編集シート -->
+<div class="sheet-backdrop" id="backdrop" hidden></div>
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true">
+  <div class="sheet-head">
+    <button class="linkbtn" id="sheetCancel">閉じる</button>
+    <strong id="sheetTitle">予定</strong>
+    <button class="linkbtn primary" id="sheetSave">保存</button>
+  </div>
+  <div class="sheet-body">
+    <label class="fld">
+      <span>タイトル <em class="edited" data-edited="title" hidden>編集済</em></span>
+      <input type="text" id="fTitle" placeholder="タイトル">
+    </label>
+    <div class="row">
+      <label class="fld">
+        <span>実行日 <em class="edited" data-edited="date" hidden>編集済</em></span>
+        <input type="date" id="fDate">
+      </label>
+      <label class="fld">
+        <span>期限 <em class="edited" data-edited="due" hidden>編集済</em></span>
+        <input type="date" id="fDue">
+      </label>
+    </div>
+    <label class="fld">
+      <span>時間帯 <em class="edited" data-edited="slotIndex" hidden>編集済</em></span>
+      <select id="fSlot">
+        <option value="">未設定</option>
+        <option value="1">①⏰ 〜9:00</option>
+        <option value="2">②☀️ 9:00〜13:00</option>
+        <option value="3">③🕛 13:00〜18:00</option>
+        <option value="4">④🌙 18:00〜</option>
+      </select>
+    </label>
+    <label class="fld">
+      <span>ステータス <em class="edited" data-edited="status" hidden>編集済</em></span>
+      <select id="fStatus">
+        <option value="未着手">未着手</option>
+        <option value="進行中">進行中</option>
+        <option value="停止中">停止中</option>
+        <option value="いつかやる">いつかやる</option>
+        <option value="完了">完了</option>
+        <option value="やらない">やらない</option>
+      </select>
+    </label>
+    <label class="fld">
+      <span>メモ（Notionの変更履歴もここに追記されます）</span>
+      <textarea id="fMemo" rows="5" placeholder="メモ"></textarea>
+    </label>
+
+    <div class="meta" id="sheetMeta"></div>
+
+    <details class="history">
+      <summary>変更履歴 <em id="histCount">0</em></summary>
+      <ol id="histList"></ol>
+    </details>
+
+    <div class="sheet-actions">
+      <button class="danger" id="sheetDelete">このタスクを削除</button>
+      <p class="note">アプリ側の削除・編集は Notion には一切反映されません（一方通行）。</p>
+    </div>
+  </div>
+</div>
+
+<!-- メニュー -->
+<div class="sheet" id="menuSheet" hidden role="dialog" aria-modal="true">
+  <div class="sheet-head">
+    <button class="linkbtn" id="menuClose">閉じる</button>
+    <strong>メニュー</strong>
+    <span style="width:56px"></span>
+  </div>
+  <div class="sheet-body">
+    <label class="switch"><input type="checkbox" id="optShowDone"> 完了・やらない を表示する</label>
+    <label class="switch"><input type="checkbox" id="optShowDeleted"> 削除済みを表示する</label>
+    <hr>
+    <button class="wide" id="btnExport">バックアップを書き出す</button>
+    <label class="wide filelabel">バックアップを読み込む<input type="file" id="fileImport" accept="application/json" hidden></label>
+    <button class="wide" id="btnPass">保存した合言葉を消去する</button>
+    <hr>
+    <div class="meta" id="menuMeta"></div>
+    <p class="note">Notion → アプリの一方通行。アプリからNotionへは書き戻しません。<br>
+      アプリ内で追加した予定はこの端末内にのみ保存されます。</p>
+  </div>
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

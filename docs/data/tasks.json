@@ -1,0 +1,294 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-31T03:36:53.576Z",
+  "source": {
+    "sample": true
+  },
+  "stats": {
+    "total": 13,
+    "withDate": 11,
+    "withoutDate": 2
+  },
+  "projects": {
+    "proj-1111": {
+      "id": "proj-1111",
+      "name": "採用・組織づくり",
+      "color": "#3b7dd8"
+    },
+    "proj-2222": {
+      "id": "proj-2222",
+      "name": "院内オペレーション",
+      "color": "#e0733d"
+    }
+  },
+  "tasks": [
+    {
+      "id": "sample0000",
+      "url": null,
+      "title": "PubMed論文レビュー",
+      "status": "未着手",
+      "statusGroup": "todo",
+      "date": "2026-07-31",
+      "dateEnd": null,
+      "due": null,
+      "slotIndex": 1,
+      "slotLabel": "①⏰ 〜9:00",
+      "slotMinutes": 180,
+      "projectIds": [],
+      "rank": null,
+      "habit": "A",
+      "link": null,
+      "createdTime": "2026-07-31T03:36:53.575Z",
+      "fp": "e000459ccd6844f55794a89c0e50c354"
+    },
+    {
+      "id": "sample0001",
+      "url": null,
+      "title": "朝の申し送り確認",
+      "status": "進行中",
+      "statusGroup": "doing",
+      "date": "2026-07-31",
+      "dateEnd": null,
+      "due": null,
+      "slotIndex": 1,
+      "slotLabel": "①⏰ 〜9:00",
+      "slotMinutes": 180,
+      "projectIds": [
+        "proj-2222"
+      ],
+      "rank": "🥇1位",
+      "habit": null,
+      "link": null,
+      "createdTime": "2026-07-31T03:36:53.576Z",
+      "fp": "70dd739e1a87cfa0e7ab02624e4d2f35"
+    },
+    {
+      "id": "sample0002",
+      "url": null,
+      "title": "求人ページに給与レンジを追記",
+      "status": "未着手",
+      "statusGroup": "todo",
+      "date": "2026-07-31",
+      "dateEnd": null,
+      "due": "2026-08-02",
+      "slotIndex": 2,
+      "slotLabel": "②☀️ 9:00〜13:00",
+      "slotMinutes": 240,
+      "projectIds": [
+        "proj-1111"
+      ],
+      "rank": "🥈2位",
+      "habit": null,
+      "link": null,
+      "createdTime": "2026-07-31T03:36:53.576Z",
+      "fp": "984f7e0ddf24eec182756bb4e015498c"
+    },
+    {
+      "id": "sample0003",
+      "url": null,
+      "title": "面談用資料を作成する",
+      "status": "未着手",
+      "statusGroup": "todo",
+      "date": "2026-07-31",
+      "dateEnd": null,
+      "due": "2026-07-30",
+      "slotIndex": 3,
+      "slotLabel": "③🕛 13:00〜18:00",
+      "slotMinutes": 300,
+      "projectIds": [
+        "proj-1111"
+      ],
+      "rank": null,
+      "habit": null,
+      "link": null,
+      "createdTime": "2026-07-31T03:36:53.576Z",
+      "fp": "354d60aeda744d2312c5acc8745d72f7"
+    },
+    {
+      "id": "sample0004",
+      "url": null,
+      "title": "レセプト点検",
+      "status": "完了",
+      "statusGroup": "done",
+      "date": "2026-07-31",
+      "dateEnd": null,
+      "due": null,
+      "slotIndex": 3,
+      "slotLabel": "③🕛 13:00〜18:00",
+      "slotMinutes": 300,
+      "projectIds": [
+        "proj-2222"
+      ],
+      "rank": null,
+      "habit": null,
+      "link": null,
+      "createdTime": "2026-07-31T03:36:53.576Z",
+      "fp": "105748eeff56fff770de681ddf511197"
+    },
+    {
+      "id": "sample0005",
+      "url": null,
+      "title": "スタッフ面談（山田さん）",
+      "status": "未着手",
+      "statusGroup": "todo",
+      "date": "2026-08-01",
+      "dateEnd": null,
+      "due": null,
+      "slotIndex": 2,
+      "slotLabel": "②☀️ 9:00〜13:00",
+      "slotMinutes": 240,
+      "projectIds": [
+        "proj-1111"
+      ],
+      "rank": null,
+      "habit": null,
+      "link": null,
+      "createdTime": "2026-07-31T03:36:53.576Z",
+      "fp": "797425c3dda68ebce825fa6aa9781182"
+    },
+    {
+      "id": "sample0006",
+      "url": null,
+      "title": "セルフレジ導入の見積り取得",
+      "status": "未着手",
+      "statusGroup": "todo",
+      "date": "2026-08-01",
+      "dateEnd": null,
+      "due": "2026-08-06",
+      "slotIndex": 3,
+      "slotLabel": "③🕛 13:00〜18:00",
+      "slotMinutes": 300,
+      "projectIds": [
+        "proj-2222"
+      ],
+      "rank": null,
+      "habit": null,
+      "link": null,
+      "createdTime": "2026-07-31T03:36:53.576Z",
+      "fp": "9e99c3e03dbb07edb3c586bd9151306f"
+    },
+    {
+      "id": "sample0007",
+      "url": null,
+      "title": "月次売上の集計",
+      "status": "未着手",
+      "statusGroup": "todo",
+      "date": "2026-08-03",
+      "dateEnd": null,
+      "due": "2026-08-03",
+      "slotIndex": 4,
+      "slotLabel": "④🌙 18:00〜",
+      "slotMinutes": 180,
+      "projectIds": [
+        "proj-2222"
+      ],
+      "rank": null,
+      "habit": null,
+      "link": null,
+      "createdTime": "2026-07-31T03:36:53.576Z",
+      "fp": "e928cd79c62ae1225f5e183cc51ba07a"
+    },
+    {
+      "id": "sample0008",
+      "url": null,
+      "title": "コールセンター比較表をまとめる",
+      "status": "停止中",
+      "statusGroup": "doing",
+      "date": "2026-08-04",
+      "dateEnd": null,
+      "due": null,
+      "slotIndex": 2,
+      "slotLabel": "②☀️ 9:00〜13:00",
+      "slotMinutes": 240,
+      "projectIds": [
+        "proj-1111"
+      ],
+      "rank": null,
+      "habit": null,
+      "link": null,
+      "createdTime": "2026-07-31T03:36:53.576Z",
+      "fp": "429af832b11715235cfc5cfe66d91fa3"
+    },
+    {
+      "id": "sample0009",
+      "url": null,
+      "title": "ヘルニア復帰メニュー見直し",
+      "status": "未着手",
+      "statusGroup": "todo",
+      "date": "2026-08-07",
+      "dateEnd": null,
+      "due": null,
+      "slotIndex": 4,
+      "slotLabel": "④🌙 18:00〜",
+      "slotMinutes": 180,
+      "projectIds": [],
+      "rank": null,
+      "habit": "B",
+      "link": null,
+      "createdTime": "2026-07-31T03:36:53.576Z",
+      "fp": "5fa24c33f9e3e19a9302a401dc1687ac"
+    },
+    {
+      "id": "sample0010",
+      "url": null,
+      "title": "院内マニュアル改訂",
+      "status": "未着手",
+      "statusGroup": "todo",
+      "date": "2026-07-28",
+      "dateEnd": null,
+      "due": null,
+      "slotIndex": 2,
+      "slotLabel": "②☀️ 9:00〜13:00",
+      "slotMinutes": 240,
+      "projectIds": [
+        "proj-2222"
+      ],
+      "rank": null,
+      "habit": null,
+      "link": null,
+      "createdTime": "2026-07-31T03:36:53.576Z",
+      "fp": "6d8413f9b327c92b6cf9358ae0e32c49"
+    },
+    {
+      "id": "sample0011",
+      "url": null,
+      "title": "去年の書類整理",
+      "status": "いつかやる",
+      "statusGroup": "todo",
+      "date": null,
+      "dateEnd": null,
+      "due": null,
+      "slotIndex": null,
+      "slotLabel": null,
+      "slotMinutes": null,
+      "projectIds": [],
+      "rank": null,
+      "habit": null,
+      "link": null,
+      "createdTime": "2026-07-31T03:36:53.576Z",
+      "fp": "2d8864a77ac8324d88ed542089c538b3"
+    },
+    {
+      "id": "sample0012",
+      "url": null,
+      "title": "名刺の発注",
+      "status": "未着手",
+      "statusGroup": "todo",
+      "date": null,
+      "dateEnd": null,
+      "due": "2026-08-10",
+      "slotIndex": null,
+      "slotLabel": null,
+      "slotMinutes": null,
+      "projectIds": [
+        "proj-2222"
+      ],
+      "rank": null,
+      "habit": null,
+      "link": null,
+      "createdTime": "2026-07-31T03:36:53.576Z",
+      "fp": "1f5dfc9789335e65b005bafdeb9c9cb4"
+    }
+  ],
+  "contentHash": "4a61e97a0e09de7dd8613eb565edf88be8cdf85d335ade260aff6113f6dc6cbc"
+}

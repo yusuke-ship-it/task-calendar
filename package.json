@@ -1,0 +1,11 @@
+{
+  "name": "notion-lifebear",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync": "node scripts/sync-notion.mjs",
+    "sample": "node scripts/make-sample.mjs",
+    "test": "node --test tests/core.test.mjs",
+    "test:e2e": "node tests/e2e.mjs"
+  }
+}
