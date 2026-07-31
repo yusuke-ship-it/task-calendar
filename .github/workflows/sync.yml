@@ -1,0 +1,46 @@
+name: Sync Notion → tasks.json
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/**'
+      - '.github/workflows/sync.yml'
+
+concurrency:
+  group: notion-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Notion を読み取って tasks.json を生成
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          SYNC_PASSPHRASE: ${{ secrets.SYNC_PASSPHRASE }}
+        run: node scripts/sync-notion.mjs
+
+      - name: 差分があればコミット
+        run: |
+          if [ -z "$(git status --porcelain docs/data/tasks.json)" ]; then
+            echo "変更なし。コミットしません。"
+            exit 0
+          fi
+          git config user.name  "notion-sync-bot"
+          git config user.email "actions@github.com"
+          git add docs/data/tasks.json
+          git commit -m "chore: sync Notion tasks ($(date -u '+%Y-%m-%d %H:%M UTC'))"
+          git push
