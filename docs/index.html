@@ -64,14 +64,19 @@
     </label>
     <div class="row">
       <label class="fld">
-        <span>実行日 <em class="edited" data-edited="date" hidden>編集済</em></span>
+        <span>実行日（開始） <em class="edited" data-edited="date" hidden>編集済</em></span>
         <input type="date" id="fDate">
       </label>
       <label class="fld">
-        <span>期限 <em class="edited" data-edited="due" hidden>編集済</em></span>
-        <input type="date" id="fDue">
+        <span>終了日 <em class="edited" data-edited="dateEnd" hidden>編集済</em></span>
+        <input type="date" id="fDateEnd">
       </label>
     </div>
+    <p class="hint" id="spanHint">終了日を入れると、その期間ずっとカレンダーに帯で表示されます（空欄なら1日だけ）。</p>
+    <label class="fld">
+      <span>期限（締切） <em class="edited" data-edited="due" hidden>編集済</em></span>
+      <input type="date" id="fDue">
+    </label>
     <label class="fld">
       <span>時間帯 <em class="edited" data-edited="slotIndex" hidden>編集済</em></span>
       <select id="fSlot">

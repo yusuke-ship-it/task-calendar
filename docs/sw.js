@@ -3,7 +3,7 @@
    - data/tasks.json：network-first（オンラインなら最新、オフラインなら前回分）
    キャッシュ名の版を上げると旧キャッシュを破棄して更新される。 */
 
-const VERSION = 'v2';
+const VERSION = 'v3';
 const SHELL_CACHE = `shell-${VERSION}`;
 const DATA_CACHE = `data-${VERSION}`;
 

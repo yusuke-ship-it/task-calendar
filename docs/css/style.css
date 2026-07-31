@@ -93,6 +93,14 @@ body{
   border-left:3px solid var(--brand);
 }
 .pip.done{opacity:.45;text-decoration:line-through}
+
+/* 期間（開始日〜終了日）の帯。セルの余白を食い込ませて横につながって見せる */
+.pip.span{border-left-width:0;border-radius:0;margin-left:-3px;margin-right:-3px;padding-left:5px}
+.pip.span.span-start{border-left-width:3px;border-radius:3px 0 0 3px;margin-left:0;padding-left:3px}
+.pip.span.span-end{border-radius:0 3px 3px 0;margin-right:0}
+.pip.span.span-start.span-end{border-radius:3px}
+.cell.sun .pip.span{border-radius:3px 0 0 3px;margin-left:0}   /* 週の折り返し部分 */
+.cell.sat .pip.span{border-radius:0 3px 3px 0;margin-right:0}
 .more{font-size:9px;color:var(--ink-3);text-align:right;padding-right:2px}
 
 /* ---------- bottom panel ---------- */
@@ -146,6 +154,7 @@ body{
 .badge.overdue{background:#c0392b;border-color:#c0392b;color:#fff}
 .badge.proj{border-left:6px solid var(--pc,var(--brand))}
 .badge.kind{border-color:var(--pc,var(--brand));color:var(--pc,var(--brand));font-weight:600}
+.badge.span{border-color:var(--pc,var(--brand));color:var(--pc,var(--brand));font-weight:600;letter-spacing:.02em}
 .badge.edited{background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
 .badge.local{background:#eee9f7;border-color:#d5c9ec;color:#6b4fa0}
 .badge.deleted{background:#eee;color:#888}
@@ -187,6 +196,8 @@ body{
 .row .fld{flex:1}
 .edited{font-style:normal;font-size:10px;background:var(--brand-soft);color:var(--brand);
   border-radius:4px;padding:1px 4px;margin-left:4px}
+.hint{font-size:11px;color:var(--ink-3);line-height:1.6;margin:-6px 0 12px}
+.hint.on{color:var(--brand);font-weight:600}
 
 .meta{font-size:11px;color:var(--ink-3);line-height:1.7;margin:8px 0}
 .meta a{color:var(--brand)}

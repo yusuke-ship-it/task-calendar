@@ -5,7 +5,7 @@
 
 import {
   mergeIncoming, applyLocalEdit, markDeleted, resetField,
-  effective, view, newLocalRecord, KINDS, KIND_BY_ID,
+  effective, view, newLocalRecord, KINDS, KIND_BY_ID, expandRange,
 } from './core.js';
 import * as db from './db.js';
 import { decryptJSON } from './crypto.js';
@@ -184,14 +184,28 @@ function visibleRecords() {
   return out;
 }
 
+/**
+ * 日付ごとに割り振る。期間（開始日〜終了日）を持つものは、その全ての日に置く。
+ * 各コピーには「何日目か」「初日か」「最終日か」を持たせ、帯として描けるようにする。
+ */
 function byDay() {
   const map = new Map();
   const undated = [];
   for (const v of visibleRecords()) {
-    const k = dayKey(v.date);
-    if (!k) { undated.push(v); continue; }
-    if (!map.has(k)) map.set(k, []);
-    map.get(k).push(v);
+    const start = dayKey(v.date);
+    if (!start) { undated.push(v); continue; }
+
+    const days = expandRange(start, dayKey(v.dateEnd));
+    days.forEach((k, i) => {
+      const inst = i === 0 && days.length === 1 ? v : { ...v };
+      inst.spanIndex = i;
+      inst.spanTotal = days.length;
+      inst.isSpanStart = i === 0;
+      inst.isSpanEnd = i === days.length - 1;
+      inst.isMulti = days.length > 1;
+      if (!map.has(k)) map.set(k, []);
+      map.get(k).push(inst);
+    });
   }
   for (const list of map.values()) list.sort(cmpTask);
   undated.sort(cmpTask);
@@ -201,6 +215,9 @@ function byDay() {
 function cmpTask(a, b) {
   const done = (x) => (x.statusGroup === 'done' || x.statusGroup === 'dropped' ? 1 : 0);
   if (done(a) !== done(b)) return done(a) - done(b);
+  // 複数日にまたがる予定は、その日の先頭にまとめる（一般的なカレンダーの流儀）
+  const multi = (x) => (x.isMulti ? 0 : 1);
+  if (multi(a) !== multi(b)) return multi(a) - multi(b);
   const s = (x) => x.slotIndex ?? 9;
   if (s(a) !== s(b)) return s(a) - s(b);
   const r = (x) => (x.rank ? Number(x.rank.replace(/\D/g, '')) || 9 : 9);
@@ -219,6 +236,20 @@ function projColor(v) {
 function projName(v) {
   const pid = v.projectIds?.[0];
   return pid ? state.projects[pid]?.name : null;
+}
+
+/** #rrggbb を薄い色に。期間の帯の背景に使う（CSS変数だった場合はそのまま返す） */
+function tint(hex, alpha) {
+  const m = /^#([0-9a-f]{6})$/i.exec(hex || '');
+  if (!m) return 'transparent';
+  const n = parseInt(m[1], 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+
+/** 8/13 のような短い表記 */
+function md(key) {
+  const [, m, d] = String(key).slice(0, 10).split('-');
+  return `${Number(m)}/${Number(d)}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -265,9 +296,24 @@ function renderCalendar() {
       pips.className = 'pips';
       for (const v of list.slice(0, 3)) {
         const p = document.createElement('div');
-        p.className = 'pip' + (v.statusGroup === 'done' || v.statusGroup === 'dropped' ? ' done' : '');
-        p.style.borderLeftColor = kindColor(v);
-        p.textContent = (v.kind !== 'task' ? `${KIND_BY_ID[v.kind]?.icon || ''} ` : '') + v.title;
+        const done = v.statusGroup === 'done' || v.statusGroup === 'dropped';
+        const color = kindColor(v);
+        let cls = 'pip' + (done ? ' done' : '');
+
+        if (v.isMulti) {
+          // 期間の帯。週の途中で切れる場合も、その週の先頭には見出しを出す
+          cls += ' span';
+          if (v.isSpanStart) cls += ' span-start';
+          if (v.isSpanEnd) cls += ' span-end';
+          p.style.background = tint(color, 0.18);
+        }
+        p.className = cls;
+        p.style.borderLeftColor = color;
+
+        const showLabel = !v.isMulti || v.isSpanStart || d.getDay() === 0;
+        p.textContent = showLabel
+          ? (v.kind !== 'task' ? `${KIND_BY_ID[v.kind]?.icon || ''} ` : '') + v.title
+          : ' ';
         pips.appendChild(p);
       }
       cell.appendChild(pips);
@@ -335,6 +381,13 @@ function itemEl(v) {
 
   const sub = document.createElement('div');
   sub.className = 'sub';
+
+  // 期間バッジ（開始日〜終了日にまたがる予定）
+  if (v.isMulti) {
+    const b = badge(`${md(v.date)}〜${md(v.dateEnd)}　${v.spanIndex + 1}/${v.spanTotal}日目`, 'span');
+    b.style.setProperty('--pc', kindColor(v));
+    sub.appendChild(b);
+  }
 
   // 種別バッジ（「タスク」は既定なので省略してノイズを減らす）
   if (v.kind && v.kind !== 'task') {
@@ -429,6 +482,9 @@ function wireUI() {
   $('tabDay').onclick = () => { state.tab = 'day'; renderPanel(); };
   $('tabUndated').onclick = () => { state.tab = 'undated'; renderPanel(); };
 
+  $('fDate').onchange = () => { $('fDateEnd').min = $('fDate').value || ''; updateSpanHint(); };
+  $('fDateEnd').onchange = updateSpanHint;
+
   $('sheetCancel').onclick = closeSheets;
   $('backdrop').onclick = closeSheets;
   $('sheetSave').onclick = saveSheet;
@@ -517,7 +573,10 @@ function openSheet(id) {
   fKind.value = v.kind || 'task';
   $('fTitle').value = v.title || '';
   $('fDate').value = dayKey(v.date) || '';
+  $('fDateEnd').value = dayKey(v.dateEnd) || '';
+  $('fDateEnd').min = dayKey(v.date) || '';
   $('fDue').value = dayKey(v.due) || '';
+  updateSpanHint();
   $('fSlot').value = v.slotIndex ?? '';
   $('fStatus').value = v.status || '未着手';
   $('fMemo').value = rec ? rec.memo || '' : '';
@@ -558,6 +617,20 @@ function openSheet(id) {
   showSheet($('sheet'));
 }
 
+/** 終了日を入れたときに「何日間か」を即座に見せる */
+function updateSpanHint() {
+  const el = $('spanHint');
+  const s = $('fDate').value, e = $('fDateEnd').value;
+  if (!s || !e || e <= s) {
+    el.textContent = '終了日を入れると、その期間ずっとカレンダーに帯で表示されます（空欄なら1日だけ）。';
+    el.classList.remove('on');
+    return;
+  }
+  const n = expandRange(s, e).length;
+  el.textContent = `${md(s)} 〜 ${md(e)} の ${n}日間、カレンダーに帯で表示されます。`;
+  el.classList.add('on');
+}
+
 function renderHistory(rec) {
   const ol = $('histList');
   const hist = rec?.history || [];
@@ -589,10 +662,16 @@ function fmtVal(v) {
 async function saveSheet() {
   const nowISO = new Date().toISOString();
   const slotRaw = $('fSlot').value;
+  const start = $('fDate').value || null;
+  let end = $('fDateEnd').value || null;
+  // 終了日が開始日より前／同じなら「期間なし」とみなす
+  if (!start || (end && end <= start)) end = null;
+
   const patch = {
     title: $('fTitle').value.trim() || '(無題)',
     kind: $('fKind').value,
-    date: $('fDate').value || null,
+    date: start,
+    dateEnd: end,
     due: $('fDue').value || null,
     slotIndex: slotRaw === '' ? null : Number(slotRaw),
     status: $('fStatus').value,

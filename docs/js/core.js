@@ -12,7 +12,32 @@ export const MERGEABLE = [
 ];
 
 /** アプリ側でユーザーが上書きできる項目（＝触ったら保持される項目・第7-3-1） */
-export const USER_EDITABLE = ['title', 'status', 'statusGroup', 'date', 'due', 'slotIndex', 'kind'];
+export const USER_EDITABLE = ['title', 'status', 'statusGroup', 'date', 'dateEnd', 'due', 'slotIndex', 'kind'];
+
+/**
+ * 期間（開始日〜終了日）を日付キーの配列に展開する。
+ * 終了日が無い／開始日以前なら1日だけ。Notion の「実行日」を範囲指定すると
+ * dateEnd が入ってくるので、そのままここに流れ込む。
+ * maxDays は暴走よけ（1年半）。
+ */
+export function expandRange(startKey, endKey, maxDays = 550) {
+  const s = startKey ? String(startKey).slice(0, 10) : null;
+  if (!s) return [];
+  const e = endKey ? String(endKey).slice(0, 10) : null;
+  if (!e || e <= s) return [s];
+
+  const out = [];
+  const d = new Date(`${s}T00:00:00`);
+  const end = new Date(`${e}T00:00:00`);
+  if (Number.isNaN(d.getTime()) || Number.isNaN(end.getTime())) return [s];
+  while (d <= end && out.length < maxDays) {
+    out.push(
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    );
+    d.setDate(d.getDate() + 1);
+  }
+  return out;
+}
 
 /**
  * 種別（そのカレンダー項目が何なのか）。ステータス（進捗）とは別軸で持つ。
