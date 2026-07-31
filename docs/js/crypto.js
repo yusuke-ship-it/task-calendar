@@ -22,7 +22,18 @@ export async function deriveKey(passphrase, saltBytes) {
 }
 
 export const b64 = {
-  from: (bytes) => btoa(String.fromCharCode(...new Uint8Array(bytes))),
+  // 大きなデータでも壊れないよう、32KBずつ小分けにして変換する。
+  // String.fromCharCode(...bytes) のような一括展開は、数百件規模で
+  // 「Maximum call stack size exceeded」になるため使わない。
+  from: (bytes) => {
+    const u8 = new Uint8Array(bytes);
+    const CHUNK = 0x8000;
+    let s = '';
+    for (let i = 0; i < u8.length; i += CHUNK) {
+      s += String.fromCharCode.apply(null, u8.subarray(i, i + CHUNK));
+    }
+    return btoa(s);
+  },
   to: (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0)),
 };
 
