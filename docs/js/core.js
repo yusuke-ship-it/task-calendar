@@ -12,7 +12,32 @@ export const MERGEABLE = [
 ];
 
 /** アプリ側でユーザーが上書きできる項目（＝触ったら保持される項目・第7-3-1） */
-export const USER_EDITABLE = ['title', 'status', 'statusGroup', 'date', 'due', 'slotIndex'];
+export const USER_EDITABLE = ['title', 'status', 'statusGroup', 'date', 'due', 'slotIndex', 'kind'];
+
+/**
+ * 種別（そのカレンダー項目が何なのか）。ステータス（進捗）とは別軸で持つ。
+ * Notion には無い、アプリ独自の項目。一方通行なので Notion には一切影響しない。
+ */
+export const KINDS = [
+  { id: 'task',        label: 'タスク',   icon: '📋', color: '#3b7dd8' },
+  { id: 'appointment', label: '約束',     icon: '🤝', color: '#e0733d' },
+  { id: 'event',       label: '予定',     icon: '📅', color: '#3f9e77' },
+  { id: 'deadline',    label: '締切',     icon: '⏳', color: '#c9483f' },
+  { id: 'anniversary', label: '記念日',   icon: '🎂', color: '#d1566f' },
+  { id: 'habit',       label: '習慣',     icon: '🔁', color: '#8a6bd1' },
+  { id: 'memo',        label: 'メモ',     icon: '📝', color: '#7a8b8f' },
+];
+
+export const KIND_BY_ID = Object.fromEntries(KINDS.map((k) => [k.id, k]));
+
+/** ユーザーが種別を選んでいないときの既定値。Notion側の手がかりから推測する。 */
+export function defaultKind(rec) {
+  const o = rec?.origin;
+  if (!o) return 'task';
+  if (o.habit) return 'habit';                       // 習慣タグが付いている
+  if (o.due && !o.date) return 'deadline';           // 締切だけあって実行日が無い
+  return 'task';
+}
 
 const FIELD_LABEL = {
   title: 'タイトル',
@@ -28,6 +53,8 @@ const FIELD_LABEL = {
   rank: '順位',
   habit: '習慣タグ',
   link: 'URL',
+  kind: '種別',
+  memo: 'メモ',
 };
 
 // ---------------------------------------------------------------------------
@@ -104,6 +131,8 @@ export function effective(rec, field) {
   if (rec.local && Object.prototype.hasOwnProperty.call(rec.local, field)) {
     return rec.local[field];
   }
+  // 種別は Notion に存在しない項目なので、未設定なら推測値を返す
+  if (field === 'kind') return defaultKind(rec);
   return rec.origin ? rec.origin[field] ?? null : null;
 }
 
@@ -111,6 +140,7 @@ export function effective(rec, field) {
 export function view(rec) {
   const out = { id: rec.id, source: rec.source, memo: rec.memo, deleted: rec.deleted };
   for (const f of MERGEABLE) out[f] = effective(rec, f);
+  out.kind = effective(rec, 'kind');
   out.url = rec.origin?.url ?? null;
   out.historyCount = rec.history?.length ?? 0;
   out.editedFields = Object.keys(rec.local || {});

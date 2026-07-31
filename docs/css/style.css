@@ -145,6 +145,7 @@ body{
 .badge.due.soon{background:#fce9d5;border-color:#f0cfa8;color:#9a5f1c}
 .badge.overdue{background:#c0392b;border-color:#c0392b;color:#fff}
 .badge.proj{border-left:6px solid var(--pc,var(--brand))}
+.badge.kind{border-color:var(--pc,var(--brand));color:var(--pc,var(--brand));font-weight:600}
 .badge.edited{background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
 .badge.local{background:#eee9f7;border-color:#d5c9ec;color:#6b4fa0}
 .badge.deleted{background:#eee;color:#888}

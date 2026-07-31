@@ -23,7 +23,7 @@ export async function deriveKey(passphrase, saltBytes) {
 
 export const b64 = {
   // 大きなデータでも壊れないよう、32KBずつ小分けにして変換する。
-  // String.fromCharCode(...bytes) のような一括展開は、数百件規模で
+  // String.fromCharCode(...bytes) のような一括展開は、数万件規模で
   // 「Maximum call stack size exceeded」になるため使わない。
   from: (bytes) => {
     const u8 = new Uint8Array(bytes);

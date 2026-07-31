@@ -5,7 +5,7 @@
 
 import {
   mergeIncoming, applyLocalEdit, markDeleted, resetField,
-  effective, view, newLocalRecord,
+  effective, view, newLocalRecord, KINDS, KIND_BY_ID,
 } from './core.js';
 import * as db from './db.js';
 import { decryptJSON } from './crypto.js';
@@ -27,7 +27,9 @@ const state = {
   records: new Map(),
   projects: {},
   lastSync: null,
-  opts: { showDone: true, showDeleted: false },
+  // 完了・やらないは既定で非表示（オーナー指示）。v は設定の版で、
+  // 既に旧設定が保存されている端末でも新しい既定に切り替えるために使う。
+  opts: { v: 2, showDone: false, showDeleted: false },
   editingId: null,
 };
 
@@ -61,7 +63,12 @@ async function boot() {
   state.sel = todayKey();
 
   await db.openDB();
-  state.opts = await db.getMeta('opts', state.opts);
+  const savedOpts = await db.getMeta('opts', null);
+  if (savedOpts && savedOpts.v === state.opts.v) {
+    state.opts = savedOpts;
+  } else {
+    await db.setMeta('opts', state.opts); // 旧版の設定は新しい既定で上書き
+  }
   state.projects = await db.getMeta('projects', {});
   state.lastSync = await db.getMeta('lastSync', null);
   for (const r of await db.getAllRecords()) state.records.set(r.id, r);
@@ -201,10 +208,13 @@ function cmpTask(a, b) {
   return String(a.title).localeCompare(String(b.title), 'ja');
 }
 
+/** 色は「種別」で決める（プロジェクトは名前バッジで出す） */
+function kindColor(v) {
+  return KIND_BY_ID[v.kind]?.color || KIND_BY_ID.task.color;
+}
 function projColor(v) {
-  if (v.source === 'local') return '#8a6bd1';
   const pid = v.projectIds?.[0];
-  return (pid && state.projects[pid]?.color) || 'var(--brand)';
+  return (pid && state.projects[pid]?.color) || 'var(--ink-3)';
 }
 function projName(v) {
   const pid = v.projectIds?.[0];
@@ -256,8 +266,8 @@ function renderCalendar() {
       for (const v of list.slice(0, 3)) {
         const p = document.createElement('div');
         p.className = 'pip' + (v.statusGroup === 'done' || v.statusGroup === 'dropped' ? ' done' : '');
-        p.style.borderLeftColor = projColor(v);
-        p.textContent = v.title;
+        p.style.borderLeftColor = kindColor(v);
+        p.textContent = (v.kind !== 'task' ? `${KIND_BY_ID[v.kind]?.icon || ''} ` : '') + v.title;
         pips.appendChild(p);
       }
       cell.appendChild(pips);
@@ -308,7 +318,7 @@ function itemEl(v) {
   const done = v.statusGroup === 'done' || v.statusGroup === 'dropped';
   const el = document.createElement('div');
   el.className = 'item' + (done ? ' done' : '');
-  el.style.borderLeftColor = projColor(v);
+  el.style.borderLeftColor = kindColor(v);
   el.dataset.id = v.id;
 
   const chk = document.createElement('button');
@@ -325,6 +335,14 @@ function itemEl(v) {
 
   const sub = document.createElement('div');
   sub.className = 'sub';
+
+  // 種別バッジ（「タスク」は既定なので省略してノイズを減らす）
+  if (v.kind && v.kind !== 'task') {
+    const k = KIND_BY_ID[v.kind];
+    const b = badge(`${k.icon} ${k.label}`, 'kind');
+    b.style.setProperty('--pc', k.color);
+    sub.appendChild(b);
+  }
 
   // 締切バッジ（第6章：実行日に置いたうえで締切も併記）
   if (v.due) {
@@ -348,7 +366,10 @@ function itemEl(v) {
     sub.appendChild(b);
   }
   if (v.source === 'local') sub.appendChild(badge('この端末のみ', 'local'));
-  if (v.editedFields.length) sub.appendChild(badge(`編集済 ${v.editedFields.length}`, 'edited'));
+  // 「編集済」はNotion由来のものだけに意味がある（ローカル作成は全項目が自分の入力）
+  if (v.source !== 'local' && v.editedFields.length) {
+    sub.appendChild(badge(`編集済 ${v.editedFields.length}`, 'edited'));
+  }
   if (v.deleted) sub.appendChild(badge('削除済み', 'deleted'));
   if (v.status && v.statusGroup !== 'todo') sub.appendChild(badge(v.status));
   if (v.rank) sub.appendChild(badge(v.rank));
@@ -480,10 +501,20 @@ function openSheet(id) {
   const rec = id ? state.records.get(id) : null;
   const v = rec ? view(rec) : {
     title: '', date: state.tab === 'day' ? state.sel : '', due: '',
-    slotIndex: '', status: '未着手', memo: '', editedFields: [], source: 'local',
+    slotIndex: '', status: '未着手', kind: 'task', memo: '', editedFields: [], source: 'local',
   };
 
-  $('sheetTitle').textContent = rec ? 'タスクを編集' : '予定を追加';
+  $('sheetTitle').textContent = rec ? '編集' : '新規追加';
+  const fKind = $('fKind');
+  if (!fKind.options.length) {
+    for (const k of KINDS) {
+      const o = document.createElement('option');
+      o.value = k.id;
+      o.textContent = `${k.icon} ${k.label}`;
+      fKind.appendChild(o);
+    }
+  }
+  fKind.value = v.kind || 'task';
   $('fTitle').value = v.title || '';
   $('fDate').value = dayKey(v.date) || '';
   $('fDue').value = dayKey(v.due) || '';
@@ -492,7 +523,7 @@ function openSheet(id) {
   $('fMemo').value = rec ? rec.memo || '' : '';
 
   for (const el of document.querySelectorAll('.edited[data-edited]')) {
-    el.hidden = !v.editedFields?.includes(el.dataset.edited);
+    el.hidden = rec?.source !== 'notion' || !v.editedFields?.includes(el.dataset.edited);
     el.onclick = null;
     if (!el.hidden && rec) {
       el.title = 'クリックでNotionの値に戻す';
@@ -560,6 +591,7 @@ async function saveSheet() {
   const slotRaw = $('fSlot').value;
   const patch = {
     title: $('fTitle').value.trim() || '(無題)',
+    kind: $('fKind').value,
     date: $('fDate').value || null,
     due: $('fDue').value || null,
     slotIndex: slotRaw === '' ? null : Number(slotRaw),

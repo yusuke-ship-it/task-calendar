@@ -55,6 +55,10 @@
   </div>
   <div class="sheet-body">
     <label class="fld">
+      <span>種別 <em class="edited" data-edited="kind" hidden>編集済</em></span>
+      <select id="fKind"></select>
+    </label>
+    <label class="fld">
       <span>タイトル <em class="edited" data-edited="title" hidden>編集済</em></span>
       <input type="text" id="fTitle" placeholder="タイトル">
     </label>
@@ -116,7 +120,7 @@
     <span style="width:56px"></span>
   </div>
   <div class="sheet-body">
-    <label class="switch"><input type="checkbox" id="optShowDone"> 完了・やらない を表示する</label>
+    <label class="switch"><input type="checkbox" id="optShowDone"> 完了・やらない を表示する（通常はオフ）</label>
     <label class="switch"><input type="checkbox" id="optShowDeleted"> 削除済みを表示する</label>
     <hr>
     <button class="wide" id="btnExport">バックアップを書き出す</button>
